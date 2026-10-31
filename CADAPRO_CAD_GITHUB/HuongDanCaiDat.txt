@@ -1,0 +1,75 @@
+================================================================================
+HƯỚNG DẪN CÀI ĐẶT BỘ FONT CAD TOÀN NĂNG & TRA CỨU ĐỊA CHÍNH (PRO v12.0)
+CHUYÊN DÙNG CHO MÁY BÀN & LAPTOP WINDOWS 10 / 11 (TẤT CẢ CÁC BẢN AUTOCAD)
+================================================================================
+
+Bộ cài đặt hoàn chỉnh này bao gồm:
+  1. Thư mục "1_Fonts_CAD_SHX": 875 font nét đơn AutoCAD (.shx) & font địa chính (.rsc)
+  2. Thư mục "2_Fonts_Windows_TTF": 2.855 font Tiếng Việt (.ttf / .otf) TCVN3, VNI, Unicode
+  3. Bộ công cụ LISP "TRACUU.LSP" + Bộ máy tìm kiếm song song "FastDwgSearch.exe":
+     - Bộ chuyển đổi & sửa lỗi font toàn năng (DF, SF, ALL2ARIAL, ALL2VN, ALL2SHX)
+     - Bộ tăng tốc AutoCAD cực đại, mượt chuột 100% (TT / BOOST)
+     - Bộ tra cứu địa chính siêu tốc đa bản vẽ (FF / TC / FFF)
+     - Bộ gộp bản đồ nhanh (GOPBANDO / GBD)
+  4. Cơ sở dữ liệu bản đồ địa chính đã lập chỉ mục sẵn (147 MB)
+
+--------------------------------------------------------------------------------
+CÁCH CÀI ĐẶT SANG MÁY KHÁC (CHỈ 1 CÚ NHẤP CHUỘT):
+--------------------------------------------------------------------------------
+Bạn có thể chọn 1 trong 2 cách cực kỳ tiện lợi:
+
+★ CÁCH 1 (TIỆN NHẤT - CHỈ 1 FILE DUY NHẤT):
+   1. Copy đúng 1 file duy nhất: "CAI_DAT_TRA_CUU_CAD_FULL.exe" (414 MB) vào USB.
+   2. Cắm USB sang máy tính khác, nhấp đúp vào file "CAI_DAT_TRA_CUU_CAD_FULL.exe".
+   3. Bấm "Yes" khi Windows hỏi quyền Administrator (UAC).
+   -> File tự động giải nén và cài đặt toàn bộ 100% trong 20 giây!
+
+★ CÁCH 2 (DÙNG THƯ MỤC HOẶC FILE NÉN ZIP):
+   1. Copy thư mục "BO_FONT_CAD_FULL" (hoặc file "BO_FONT_CAD_FULL_SETUP.zip" rồi giải nén).
+   2. Nhấp đúp chuột vào file: ===> CAI_DAT_TOAN_BO_1_CLICK.bat <===
+   3. Bấm "Yes" khi Windows hỏi quyền Administrator.
+
+Hệ thống sẽ tự động xử lý toàn bộ 4 bước:
+   [1/4] Cài đặt & đăng ký 2.855 font Windows (TCVN3, VNI, Unicode), có tác dụng ngay không cần khởi động lại.
+   [2/4] Sao chép 875 font CAD nét đơn (.SHX/.RSC) vào toàn bộ các phiên bản AutoCAD trên máy.
+   [3/4] Cài đặt bộ máy tìm kiếm siêu tốc FastDwgSearch Pro v12.0 & cơ sở dữ liệu bản đồ địa chính.
+   [4/4] Tự động nạp acaddoc.lsp để mỗi khi mở AutoCAD là công cụ tự kích hoạt sẵn 100%!
+
+--------------------------------------------------------------------------------
+HƯỚNG DẪN SỬ DỤNG CÁC LỆNH TRONG AUTOCAD:
+--------------------------------------------------------------------------------
+
+1. LỆNH TRA CỨU ĐỊA CHÍNH:
+   - Gõ lệnh: FF (hoặc TC)
+     + Tìm kiếm trên bản vẽ đang mở: Nhập số thửa / tờ / tên chủ đất vào ô tìm kiếm.
+     + Tìm kiếm xuyên hàng nghìn bản vẽ trong thư mục:
+       * Tích BẬT công tắc [v] Tìm trong thư mục.
+       * Nhấp [Chọn Thư Mục...] trỏ tới thư mục chứa các file .DWG.
+       * Nhấp [Cập Nhật Chỉ Mục] (chỉ cần chạy 1 lần để hệ thống nạp dữ liệu siêu tốc).
+       * Nhập từ khóa cần tìm -> Danh sách kết quả hiện ra ngay lập tức (< 1 giây)!
+       * Nhấp đúp chuột vào kết quả để tự động mở bản vẽ và Zoom chuẩn tọa độ VN-2000.
+   - Gõ lệnh: CTTM (hoặc FFO) -> Bật / Tắt nhanh chế độ tìm kiếm thư mục.
+   - Gõ lệnh: FFF  (hoặc TCTM) -> Mở trực tiếp chế độ tìm kiếm thư mục.
+   - Gõ lệnh: FFL              -> Mở lại bảng kết quả tìm kiếm thư mục vừa tra cứu.
+   - Gõ lệnh: GOPBANDO (GBD)   -> Gộp tất cả các tờ bản đồ .DWG trong thư mục vào 1 bản vẽ.
+
+2. LỆNH ĐỔI FONT & SỬA LỖI FONT TOÀN NĂNG:
+   - Gõ lệnh: DF (hoặc DOIFONT)
+     -> Mở BẢNG ĐỔI FONT:
+        [1] Chuyển toàn bộ bản vẽ sang ARIAL UNICODE (Khuyên dùng - Đọc 100% chữ tiếng Việt)
+        [2] Đổi toàn bộ kiểu chữ sang .VnArial (TCVN3 - Tiếng Việt ABC)
+        [3] Đổi toàn bộ kiểu chữ sang VNTIME.SHX (Font nét đơn CAD)
+        [4] Quét & tự động sửa lỗi từng chữ (Lệnh SF)
+        [5] Kiểm tra tình trạng font bản vẽ (Lệnh KTFONT)
+   - Gõ lệnh: SF (hoặc SUAFONT / CV)
+     -> Tự động quét và sửa toàn bộ lỗi font, giải mã đa bảng mã (TCVN3, VNI sang Unicode chuẩn)
+        Sửa các lỗi biến dạng: "?Êt tranh chÊp" -> "đất tranh chấp", "4/1 Êp CÇu X©y" -> "4/1 Ấp Cầu Xây".
+   - Gõ lệnh: ALL2ARIAL  -> Đổi tất cả Style sang Arial Unicode.
+   - Gõ lệnh: ALL2VN     -> Đổi tất cả Style sang .VnArial (TCVN3).
+   - Gõ lệnh: ALL2SHX    -> Đổi tất cả Style sang font nét đơn VNTIME.SHX.
+
+3. LỆNH TĂNG TỐC AUTOCAD:
+   - Gõ lệnh: TT (hoặc BOOST)
+     -> Tối ưu hóa toàn bộ biến hệ thống AutoCAD, chuột mượt mà 100%, khử giật lag khi zoom pan.
+
+================================================================================
