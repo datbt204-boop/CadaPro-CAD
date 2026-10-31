@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net;
 
 namespace FastDwgSearch
 {
@@ -22,6 +23,128 @@ namespace FastDwgSearch
         static readonly Encoding Utf8Bom = new UTF8Encoding(true);
 
         static readonly Dictionary<char, int[]> VniVowelMap = new Dictionary<char, int[]>();
+        public static readonly string CurrentVersion = "1.0.0";
+        public static readonly string GitHubRepo = "datbt204-boop/CadaPro-CAD";
+
+        public static bool IsNewerVersion(string remote, string local)
+        {
+            try
+            {
+                string[] rP = remote.Trim().TrimStart('v', 'V').Split('.');
+                string[] lP = local.Trim().TrimStart('v', 'V').Split('.');
+                for (int i = 0; i < Math.Max(rP.Length, lP.Length); i++)
+                {
+                    int rVal = i < rP.Length ? int.Parse(rP[i]) : 0;
+                    int lVal = i < lP.Length ? int.Parse(lP[i]) : 0;
+                    if (rVal > lVal) return true;
+                    if (rVal < lVal) return false;
+                }
+                return false;
+            }
+            catch
+            {
+                return !string.Equals(remote.Trim(), local.Trim(), StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        public static string FetchRemoteVersion()
+        {
+            string[] urls = new string[] {
+                "https://raw.githubusercontent.com/" + GitHubRepo + "/main/CADAPRO_CAD_GITHUB/version.txt",
+                "https://raw.githubusercontent.com/" + GitHubRepo + "/main/version.txt"
+            };
+            foreach (var url in urls)
+            {
+                try
+                {
+                    var req = (HttpWebRequest)WebRequest.Create(url);
+                    req.Timeout = 3000;
+                    req.ReadWriteTimeout = 3000;
+                    req.UserAgent = "CadaPro-CAD";
+                    using (var resp = req.GetResponse())
+                    using (var sr = new StreamReader(resp.GetResponseStream()))
+                    {
+                        string txt = sr.ReadToEnd().Trim();
+                        if (!string.IsNullOrEmpty(txt)) return txt;
+                    }
+                }
+                catch { }
+            }
+            return null;
+        }
+
+        public static void CheckUpdateSilent()
+        {
+            try
+            {
+                string remoteVer = FetchRemoteVersion();
+                if (!string.IsNullOrEmpty(remoteVer) && IsNewerVersion(remoteVer, CurrentVersion))
+                {
+                    string noticePath = Path.Combine(WorkDir, "new_update_notice.txt");
+                    File.WriteAllText(noticePath, remoteVer);
+                }
+            }
+            catch { }
+        }
+
+        public static bool PerformDirectUpdate()
+        {
+            try
+            {
+                string[] files = new string[] { "TRACUU.LSP", "FastDwgSearch.exe", "GOPTO.LSP", "version.txt", "compile_cs.bat", "CAP_NHAT_TU_GITHUB.bat" };
+                string rawRoot = "https://raw.githubusercontent.com/" + GitHubRepo + "/main";
+                string appDir = AppDomain.CurrentDomain.BaseDirectory;
+                string[] targetDirs = new string[] { appDir, @"C:\EXTRACUUAUTOCAD", @"D:\EXTRACUUAUTOCAD" };
+
+                using (var wc = new WebClient())
+                {
+                    foreach (var f in files)
+                    {
+                        byte[] data = null;
+                        try { data = wc.DownloadData(rawRoot + "/CADAPRO_CAD_GITHUB/" + f); }
+                        catch
+                        {
+                            try { data = wc.DownloadData(rawRoot + "/" + f); } catch { }
+                        }
+
+                        if (data != null && data.Length > 0)
+                        {
+                            foreach (var dir in targetDirs)
+                            {
+                                if (Directory.Exists(dir))
+                                {
+                                    string targetPath = Path.Combine(dir, f);
+                                    if (f.Equals("FastDwgSearch.exe", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        string newExe = Path.Combine(dir, "FastDwgSearch.new.exe");
+                                        File.WriteAllBytes(newExe, data);
+                                        try { File.Copy(newExe, targetPath, true); } catch { }
+                                    }
+                                    else
+                                    {
+                                        File.WriteAllBytes(targetPath, data);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                try
+                {
+                    string noticePath = Path.Combine(WorkDir, "new_update_notice.txt");
+                    if (File.Exists(noticePath)) File.Delete(noticePath);
+                }
+                catch { }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         static readonly Dictionary<int, int> VniSingleMap = new Dictionary<int, int>();
         static readonly Dictionary<int, int> TcvnMap = new Dictionary<int, int>();
         static readonly Dictionary<int, int> Win1252Reverse = new Dictionary<int, int>();
@@ -2182,6 +2305,8 @@ namespace FastDwgSearch
             Label lblDetailContent, lblDetailSheet, lblDetailCoords;
             Button btnCopyCadCoords;
             Button btnOpen, btnInsert, btnExcel, btnReport, btnReset, btnClose;
+            Button btnUpdateNotice;
+            string remoteVersionFound = null;
 
             public static string ActiveSearchFolder = "";
             string currentFolder = "";
@@ -2211,6 +2336,7 @@ namespace FastDwgSearch
                 ActiveSearchFolder = currentFolder;
                 InitializeComponent();
                 UpdateFolderDisplay();
+                Task.Factory.StartNew(() => CheckUpdateFromGitHub());
 
                 if (!string.IsNullOrEmpty(initialKeyword))
                 {
@@ -2221,7 +2347,7 @@ namespace FastDwgSearch
 
             void InitializeComponent()
             {
-                this.Text = "Tra Cứu Bản Đồ Địa Chính Siêu Tốc - Fast Find Pro v13.0 (Đã Lọc Bỏ Tổng Ghép)";
+                this.Text = "CadaPro-CAD v1.0 - Tra Cứu Bản Đồ Địa Chính Siêu Tốc";
                 try
                 {
                     string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app_icon.ico");
@@ -2291,7 +2417,22 @@ namespace FastDwgSearch
                 rbExact = new RadioButton() { Text = "Khớp chính xác cụm từ", Location = new Point(270, 47), AutoSize = true, Font = new Font("Segoe UI", 9.25f, FontStyle.Regular) };
                 rbGcnThua = new RadioButton() { Text = "Chỉ tìm Số GCN / Số Thửa", Location = new Point(460, 47), AutoSize = true, Font = new Font("Segoe UI", 9.25f, FontStyle.Regular) };
 
-                pnlTop.Controls.AddRange(new Control[] { lblMode, rbAnd, rbExact, rbGcnThua });
+                                btnUpdateNotice = new Button()
+                {
+                    Text = "🔔 Có bản mới! [Cập Nhật Ngay]",
+                    Size = new Size(260, 28),
+                    Location = new Point(pnlTop.ClientSize.Width - 365, 46),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                    BackColor = Color.FromArgb(253, 126, 20),
+                    ForeColor = Color.White,
+                    Font = new Font("Segoe UI", 9f, FontStyle.Bold),
+                    FlatStyle = FlatStyle.Flat,
+                    Cursor = Cursors.Hand,
+                    Visible = false
+                };
+                btnUpdateNotice.FlatAppearance.BorderSize = 0;
+                btnUpdateNotice.Click += (s, e) => HandleUpdateClick();
+                pnlTop.Controls.AddRange(new Control[] { lblMode, rbAnd, rbExact, rbGcnThua, btnUpdateNotice });
 
                 // Row 3: Subfilter
                 Label lblSub = new Label() { Text = "⚡ Lọc phụ :", Location = new Point(12, 82), AutoSize = true, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) };
@@ -2503,6 +2644,74 @@ namespace FastDwgSearch
                 {
                     lnkFolder.Text = currentFolder;
                     lnkFolder.LinkColor = Color.FromArgb(13, 110, 253);
+                }
+            }
+
+            void CheckUpdateFromGitHub()
+            {
+                try
+                {
+                    string remoteVer = FetchRemoteVersion();
+                    if (!string.IsNullOrEmpty(remoteVer) && IsNewerVersion(remoteVer, CurrentVersion))
+                    {
+                        remoteVersionFound = remoteVer;
+                        try
+                        {
+                            string noticePath = Path.Combine(WorkDir, "new_update_notice.txt");
+                            File.WriteAllText(noticePath, remoteVer);
+                        }
+                        catch { }
+
+                        this.BeginInvoke((Action)(() =>
+                        {
+                            btnUpdateNotice.Text = string.Format("🔔 Có bản mới v{0} [Cập Nhật Ngay]", remoteVer);
+                            btnUpdateNotice.Visible = true;
+                        }));
+                    }
+                }
+                catch { }
+            }
+
+            void HandleUpdateClick()
+            {
+                string ver = remoteVersionFound ?? "mới nhất";
+                var dr = MessageBox.Show(
+                    string.Format("Đã có phiên bản mới ({0}) trên GitHub!\nBạn có muốn tự động tải về và nâng cấp ngay bây giờ không?", ver),
+                    "CadaPro-CAD - Cập Nhật Phiên Bản",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information);
+
+                if (dr == DialogResult.Yes)
+                {
+                    btnUpdateNotice.Text = "⏳ Đang tải bản mới từ GitHub...";
+                    btnUpdateNotice.Enabled = false;
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        bool ok = PerformDirectUpdate();
+                        this.BeginInvoke((Action)(() =>
+                        {
+                            if (ok)
+                            {
+                                MessageBox.Show(
+                                    "Đã cập nhật thành công lên bản " + ver + "!\nVui lòng khởi động lại ứng dụng để áp dụng tính năng mới.",
+                                    "CadaPro-CAD - Thành Công",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                                btnUpdateNotice.Visible = false;
+                            }
+                            else
+                            {
+                                MessageBox.Show(
+                                    "Không thể tải bản cập nhật tự động. Vui lòng kiểm tra kết nối mạng hoặc gõ lệnh CAPNHAT trong CAD.",
+                                    "Lỗi Cập Nhật",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Warning);
+                                btnUpdateNotice.Text = "🔔 Có bản mới! [Thử Lại]";
+                                btnUpdateNotice.Enabled = true;
+                            }
+                        }));
+                    });
                 }
             }
 
@@ -3020,6 +3229,16 @@ namespace FastDwgSearch
                     bool force = (args.Length >= 4 && args[3] == "1");
                     DoCheck(args[1], args[2], force);
                     return 0;
+                }
+                else if (cmd == "check-update")
+                {
+                    CheckUpdateSilent();
+                    return 0;
+                }
+                else if (cmd == "update-now")
+                {
+                    bool ok = PerformDirectUpdate();
+                    return ok ? 0 : 1;
                 }
                 else if (cmd == "ingest" && args.Length >= 2)
                 {

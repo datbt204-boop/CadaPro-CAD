@@ -12,18 +12,8 @@ if exist "%REPO_CONFIG%" (
 )
 
 if "%GITHUB_REPO%"=="" (
-    echo [THÔNG BÁO] Chưa cấu hình địa chỉ kho GitHub.
-    echo Vui lòng nhập đường dẫn repository của bạn (dạng: username/repo_name):
-    set /p GITHUB_REPO="-> Repository: "
-    if not "%GITHUB_REPO%"=="" (
-        echo %GITHUB_REPO%>"%REPO_CONFIG%"
-    )
-)
-
-if "%GITHUB_REPO%"=="" (
-    echo [LỖI] Bạn chưa cung cấp địa chỉ GitHub!
-    pause
-    exit /b 1
+    set GITHUB_REPO=datbt204-boop/CadaPro-CAD
+    echo %GITHUB_REPO%>"%REPO_CONFIG%"
 )
 
 echo.
@@ -46,7 +36,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "        Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing;" ^
     "        Write-Host \"   [OK] Đã cập nhật $f\" -ForegroundColor Green;" ^
     "    } catch {" ^
-    "        Write-Host \"   [BỎ QUA] Không tìm thấy hoặc lỗi tải: $f\" -ForegroundColor Yellow;" ^
+    "        try {" ^
+    "            $subUrl = \"$raw/CADAPRO_CAD_GITHUB/$f\";" ^
+    "            Invoke-WebRequest -Uri $subUrl -OutFile $dest -UseBasicParsing;" ^
+    "            Write-Host \"   [OK] Đã cập nhật $f\" -ForegroundColor Green;" ^
+    "        } catch {" ^
+    "            Write-Host \"   [BỎ QUA] Không tìm thấy: $f\" -ForegroundColor Yellow;" ^
+    "        }" ^
     "    }" ^
     "};" ^
     "$exeSrc = Join-Path $work 'FastDwgSearch.exe';" ^

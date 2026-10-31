@@ -2950,6 +2950,8 @@
 ;;; 11. LỆNH CHÍNH: FF (FAST FIND PRO v12.0 MULTI-DWG & MULTI-FONT UNIVERSAL)
 ;;; -------------------------------------------------------------------------
 (defun c:FF ( / *error* dclPath dclId dlgStatus initVal clipText kw optSplit optNested
+  (TC-Check-Update-Notice)
+  (vl-catch-all-apply '(lambda () (startapp (strcat "\"" (TC-Ensure-FastSearch-Exe) "\" check-update"))))
                 searchTerms kwSpecs ssgetPat coreFilter ss i ent dxf typ txt cleanTxt dispTxt
                 sub subDxf obj matches count item target e minPt maxPt p1 p2 cen diag h
                 idx userChoice ssFound countText countAtt countOther countCoord
@@ -4586,6 +4588,8 @@
 
 ;; Mở thẳng chế độ Tìm Kiếm Toàn Bộ Các Tờ Bản Đồ Trong Thư Mục (Fast Find Pro v13.0 GUI)
 (defun c:FFF ( / fld cfgFld )
+  (TC-Check-Update-Notice)
+  (vl-catch-all-apply '(lambda () (startapp (strcat "\"" (TC-Ensure-FastSearch-Exe) "\" check-update"))))
   (setq cfgFld (TC-Get-Config-Folder))
   (setq fld (cond
               ((and *last-search-folder* (vl-file-directory-p *last-search-folder*))
@@ -4743,6 +4747,35 @@
 (defun c:TCN () (c:FFN))
 (defun c:TCP () (c:FFP))
 (defun c:TT () (c:TANGTOC))
+
+;; Tu dong kiem tra va thong bao ban cap nhat moi tu GitHub
+(defun TC-Check-Update-Notice ( / workDir noticePath fHandle fLine )
+  (vl-catch-all-apply
+    '(lambda ()
+       (setq workDir (TC-Get-Extra-Dir))
+       (setq noticePath (strcat workDir "\\new_update_notice.txt"))
+       (if (findfile noticePath)
+         (progn
+           (setq fHandle (open noticePath "r"))
+           (if fHandle
+             (progn
+               (setq fLine (read-line fHandle))
+               (close fHandle)
+               (if (and fLine (/= fLine ""))
+                 (progn
+                   (prompt "\n==========================================================================")
+                   (prompt (strcat "\n [\U+1F514 CadaPro-CAD] DA CO BAN CAP NHAT MOI (v" fLine ") TREN GITHUB!"))
+                   (prompt "\n -> Hay go lenh 'CAPNHAT' (hoac 'UPDATE') de tu dong nang cap tinh nang moi!")
+                   (prompt "\n==========================================================================")
+                 )
+               )
+             )
+           )
+         )
+       )
+     )
+  )
+)
 
 ;; Cap nhat truc tiep phien ban moi nhat tu GitHub
 (defun c:CAPNHAT ( / batPath )
